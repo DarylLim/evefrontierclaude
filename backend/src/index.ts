@@ -5,6 +5,9 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 import { SessionManager } from './api/SessionManager';
 import { createRouter } from './api/routes';
+import { seedKnowledgeBase } from './llm/seedKnowledge';
+
+seedKnowledgeBase();
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 

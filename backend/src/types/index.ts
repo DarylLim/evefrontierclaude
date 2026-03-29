@@ -3,10 +3,9 @@ export interface PlayerContext {
   walletAddress: string;
   characterId: string;
 
-  // Shell / Skills
-  shellType: 'Rugged' | 'Reaping' | 'Aggressive' | null;
-  crownCount: number;
-  crownEstimatedHours: number;
+  // Shell / Ship
+  shellType: string | null;  // ship name from world-api (e.g. "Reflex", "Recurve")
+  shellTypeId: number | null; // raw type_id from on-chain Assembly
 
   // Fuel
   fuelPct: number;
@@ -14,7 +13,7 @@ export interface PlayerContext {
   fuelMaxCapacity: number;
 
   // Inventory
-  cargoItems: { typeId: string; quantity: number }[];
+  cargoItems: { typeId: number; quantity: number; volume: number }[];
   ammoCount: number;
 
   // Location (may be null if location is hashed)
@@ -29,7 +28,7 @@ export interface PlayerContext {
   tutorialStage: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
   // Assemblies
-  activeAssemblies: { id: string; type: string; status: 'Online' | 'Offline' | 'Anchored' }[];
+  activeAssemblies: { id: string; typeId: number; typeName: string; status: string }[];
   activeManufacturingJobs: number;
 
   // Combat

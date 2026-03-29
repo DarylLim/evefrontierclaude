@@ -42,9 +42,9 @@ const rules: Rule[] = [
     id: 'shell_risk',
     category: 'SAFETY',
     severity: 'warning',
-    trigger: (ctx) => ctx.crownCount > 0 && ctx.lastCombatEventAt !== null,
+    trigger: (ctx) => ctx.lastCombatEventAt !== null && ctx.activeAssemblies.some(a => a.status === 'Online'),
     title: () => 'Shell at Risk',
-    message: (ctx) => `Your Shell carries ${ctx.crownCount} Crown(s) (~${ctx.crownEstimatedHours}h). Recent combat activity detected.`,
+    message: () => 'Recent combat activity detected with an Online assembly. Consider docking.',
   },
   {
     id: 'stranding_alert',

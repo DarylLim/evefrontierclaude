@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { usePlayerContext } from '@/hooks/usePlayerContext';
 import FuelGauge from '@/components/FuelGauge';
 import ThreatRing from '@/components/ThreatRing';
-import AlertCard from '@/components/AlertCard';
+import AlertFeed from '@/components/AlertFeed';
 import ChatView from '../chat/page';
 
 export default function Dashboard() {
   const { playerContext, alerts, sessionId } = usePlayerContext();
+  const [debugOpen, setDebugOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-ghost-bg text-gray-100 p-4 max-w-md mx-auto">
@@ -31,26 +33,29 @@ export default function Dashboard() {
 
           <div className="bg-ghost-surface rounded-lg p-4 border border-ghost-border mb-4">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Shell</span>
-              <span>{playerContext.shellType ?? 'None'}</span>
-            </div>
-            <div className="flex justify-between text-sm mt-2">
-              <span className="text-gray-400">Crowns</span>
-              <span className={playerContext.crownCount > 0 ? 'text-ghost-warning' : 'text-gray-300'}>
-                {playerContext.crownCount} (~{playerContext.crownEstimatedHours}h)
-              </span>
+              <span className="text-gray-400">Ship</span>
+              <span>{playerContext.shellType ?? '—'}</span>
             </div>
             <div className="flex justify-between text-sm mt-2">
               <span className="text-gray-400">Assemblies</span>
               <span>{playerContext.activeAssemblies.length}</span>
             </div>
+            {playerContext.activeAssemblies.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {playerContext.activeAssemblies.map((a) => (
+                  <div key={a.id} className="flex justify-between text-xs text-gray-400">
+                    <span>{a.typeName}</span>
+                    <span className={a.status === 'Online' ? 'text-ghost-safe' : 'text-gray-500'}>{a.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {alerts.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {alerts.slice(0, 3).map((alert) => (
-                <AlertCard key={alert.id} alert={alert} />
-              ))}
+            <div className="bg-ghost-surface rounded-lg p-4 border border-ghost-border mb-4">
+              <h2 className="text-xs text-gray-400 uppercase tracking-widest mb-3">Alerts</h2>
+              <AlertFeed alerts={alerts} />
             </div>
           )}
         </>
@@ -61,6 +66,21 @@ export default function Dashboard() {
       )}
 
       <ChatView sessionId={sessionId} />
+
+      <div className="mt-4 border border-ghost-border rounded-lg overflow-hidden">
+        <button
+          onClick={() => setDebugOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-2 text-xs text-gray-500 bg-ghost-surface hover:text-gray-300"
+        >
+          <span>DEBUG — playerContext</span>
+          <span>{debugOpen ? '▲' : '▼'}</span>
+        </button>
+        {debugOpen && (
+          <pre className="p-4 text-xs text-green-400 bg-black overflow-x-auto max-h-96 overflow-y-auto">
+            {playerContext ? JSON.stringify(playerContext, null, 2) : 'null — no context received yet'}
+          </pre>
+        )}
+      </div>
     </div>
   );
 }
