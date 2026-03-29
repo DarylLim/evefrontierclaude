@@ -2,9 +2,11 @@
 
 interface FuelGaugeProps {
   pct: number;
+  unitsRemaining?: number;
+  maxCapacity?: number;
 }
 
-export default function FuelGauge({ pct }: FuelGaugeProps) {
+export default function FuelGauge({ pct, unitsRemaining, maxCapacity }: FuelGaugeProps) {
   const color = pct < 20 ? 'bg-ghost-danger' : pct < 50 ? 'bg-ghost-warning' : 'bg-ghost-safe';
 
   return (
@@ -19,6 +21,11 @@ export default function FuelGauge({ pct }: FuelGaugeProps) {
           style={{ width: `${pct}%` }}
         />
       </div>
+      {unitsRemaining != null && maxCapacity != null && (
+        <div className="text-xs text-gray-500 text-center mt-2">
+          {unitsRemaining} / {maxCapacity} units
+        </div>
+      )}
     </div>
   );
 }

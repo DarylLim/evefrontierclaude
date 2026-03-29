@@ -22,7 +22,7 @@ export default function AlertFeed({ alerts }: { alerts: AlertCardType[] }) {
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap transition-colors min-h-[32px] ${
+              className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap transition-colors min-h-[44px] ${
                 active === cat
                   ? 'border-ghost-accent text-ghost-accent'
                   : 'border-ghost-border text-gray-500 hover:border-gray-400'
