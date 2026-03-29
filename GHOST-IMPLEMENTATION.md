@@ -28,20 +28,20 @@
 |---|---|
 | Query PlayerProfile by wallet address | Documented GraphQL query in official docs: `address(address: $address) { objects(filter: { type: $profileType }) }`. Returns `character_id`. |
 | Read Character/Shell object (Crowns, Shell type, status) | Character is a shared Sui object. Fetch via deterministic ID derived from `character_id + TenantItemId`. Source: `character.move` on GitHub. |
-| Read Inventory contents (cargo, ammo, ore, crafted items) | `inventory.move` is a Layer 1 primitive. SSU inventory confirmed via live endpoint: `blockchain-gateway-stillness.live.tech.evefrontier.com/smartassemblies/{ssu_id}`. |
+| Read Inventory contents (cargo, ammo, ore, crafted items) | `inventory.move` is a Layer 1 primitive. SSU inventory confirmed via live endpoint: `blockchain-gateway-utopia.live.tech.evefrontier.com/smartassemblies/{ssu_id}`. |
 | Read Assembly status (Online/Offline/Anchored) | `status.move` is a Layer 1 primitive exposed on all Smart Assembly shared objects. Queryable via SuiClient. |
 | Subscribe to JumpEvent (gate traversal) | `suix_queryEvents` with `MoveEventType: "0x...::smartgate::JumpEvent"` — exact example in official interfacing docs. |
 | Subscribe to inventory update events | Confirmed in interfacing docs: "World events include JumpEvent, inventory updates, and deployment changes." |
-| EVE Vault wallet connection | External browser: connect to `https://dapps.evefrontier.com/?tenant=stillness`. EVE Vault browser extension required. Uses Sui Wallet Standard. |
-| GraphQL batch queries (GetObjectsByType) | Live example querying NetworkNode objects by type. Endpoint live for Testnet and Stillness. |
-| SSU inventory / market data via REST API | `GET blockchain-gateway-stillness.live.tech.evefrontier.com/smartassemblies/{ssu_id}` — confirmed in SmartStorageUnit docs. Returns JSON with inventory + ephemeral inventory. |
+| EVE Vault wallet connection | External browser: connect to `https://dapps.evefrontier.com/?tenant=utopia`. EVE Vault browser extension required. Uses Sui Wallet Standard. |
+| GraphQL batch queries (GetObjectsByType) | Live example querying NetworkNode objects by type. Endpoint live for Testnet and Utopia. |
+| SSU inventory / market data via REST API | `GET blockchain-gateway-utopia.live.tech.evefrontier.com/smartassemblies/{ssu_id}` — confirmed in SmartStorageUnit docs. Returns JSON with inventory + ephemeral inventory. |
 | Read Network Node status | `network_node.move` is a Layer 1 primitive. Shared objects queryable by type via GraphQL. |
 
 ### ⚠️ Partial — Validate on Day 1 before building
 
 | Feature | Risk | Notes |
 |---|---|---|
-| `fuel.move` state (fuel level, consumption rate) | Medium | Primitive confirmed. Field names (`current_fuel`, `max_fuel`) NOT documented — must read `fuel.move` source on GitHub and test against Stillness. |
+| `fuel.move` state (fuel level, consumption rate) | Medium | Primitive confirmed. Field names (`current_fuel`, `max_fuel`) NOT documented — must read `fuel.move` source on GitHub and test against Utopia. |
 | `location.move` state (current system) | **HIGH** | Primitive confirmed. BUT: World Explainer explicitly states "on-chain locations are stored as cryptographic hashes, not cleartext coordinates." Raw system ID is NOT directly readable. Workaround: infer from JumpEvent history. |
 | HP / hull damage state | High | Not listed as a Layer 1 primitive. May be server-side only. Test on Day 1. If unavailable, remove from dashboard. |
 | Combat events (damage, kills) | Medium | Confirmed to exist but MoveEventType strings are not documented. Must grep `world-contracts` GitHub source for event struct definitions. |
@@ -69,8 +69,8 @@ npm install @mysten/sui @evefrontier/dapp-kit ws express next react tailwindcss
 | # | Task | Detail |
 |---|---|---|
 | 1 | Install Sui TypeScript SDK | `npm install @mysten/sui` — gives access to SuiClient, GraphQL queries, suix_queryEvents |
-| 2 | Configure network endpoint | Point SuiClient to EVE Frontier's Sui full node for Stillness. Source endpoint from the Stillness Blockchain Addresses page in docs. |
-| 3 | Identify `WORLD_PACKAGE_ID` | Required for all GraphQL type filters (e.g. `0x<WORLD_PACKAGE_ID>::character::PlayerProfile`). Source from Stillness Blockchain Addresses page or world-contracts repo. |
+| 2 | Configure network endpoint | Point SuiClient to EVE Frontier's Sui full node for Utopia. Source endpoint from the Utopia Blockchain Addresses page in docs. |
+| 3 | Identify `WORLD_PACKAGE_ID` | Required for all GraphQL type filters (e.g. `0x<WORLD_PACKAGE_ID>::character::PlayerProfile`). Source from Utopia Blockchain Addresses page or world-contracts repo. |
 | 4 | Clone world-contracts repo | `github.com/evefrontier/world-contracts` — contains Move source for all primitives. Essential for discovering undocumented field names. |
 
 ### Step 2: Player State Reader
@@ -98,7 +98,7 @@ const query = `
 | # | Task | Detail |
 |---|---|---|
 | 1 | Query PlayerProfile by wallet address | Input: player wallet address. Output: `character_id`. This is the entry point for all subsequent queries. |
-| 2 | Derive Character object ID | Use `TenantItemId` (`character_id` + tenant string `"stillness"`) + `ObjectRegistry` to derive the deterministic Sui object ID. Formula is in `object_registry.move`. |
+| 2 | Derive Character object ID | Use `TenantItemId` (`character_id` + tenant string `"utopia"`) + `ObjectRegistry` to derive the deterministic Sui object ID. Formula is in `object_registry.move`. |
 | 3 | Fetch Character object | `client.getObject({ id: characterObjectId, options: { showContent: true } })` — parse for Shell type, Crown list, tribe affiliation. |
 | 4 | Fetch Inventory object | Derive inventory object ID from `character_id` using same `TenantItemId` pattern (`inventory.move`). Parse for cargo contents, ammo count, fuel quantity. |
 | 5 | Fetch fuel.move state | Derive fuel object ID. Fetch and parse. **Caution:** field names must be verified against `fuel.move` source on GitHub. Expected: `current_fuel: u64`, `max_fuel: u64`. Validate on Day 1. |
@@ -123,11 +123,11 @@ const response = await fetch("https://fullnode.mainnet.sui.io:443", {
 | 1 | Subscribe to JumpEvent | `MoveEventType: "0x<WORLD_PACKAGE_ID>::smartgate::JumpEvent"`. Poll every 1s. Each JumpEvent reveals which gate was used → enables system location inference. |
 | 2 | Subscribe to inventory update events | Confirmed available. Discover exact MoveEventType string from world-contracts source. Use to detect cargo changes, manufacturing completions, fuel deposits. |
 | 3 | Subscribe to assembly status events | Deployment changes are subscribable. Detect when player structures go online/offline. Derive from `status.move` event types. |
-| 4 | Discover combat event types | Search `world-contracts` GitHub for `'event' structs` in combat modules. Look for `has copy, drop` struct definitions. Validate type strings against live Stillness data. |
+| 4 | Discover combat event types | Search `world-contracts` GitHub for `'event' structs` in combat modules. Look for `has copy, drop` struct definitions. Validate type strings against live Utopia data. |
 
 ### Step 4: Blockchain Gateway REST API
 
-Base URL: `https://blockchain-gateway-stillness.live.tech.evefrontier.com`
+Base URL: `https://blockchain-gateway-utopia.live.tech.evefrontier.com`
 
 | # | Task | Detail |
 |---|---|---|
@@ -141,13 +141,13 @@ Base URL: `https://blockchain-gateway-stillness.live.tech.evefrontier.com`
 import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 
 // Tenant scoping
-const tenantUrl = "https://dapps.evefrontier.com/?tenant=stillness";
+const tenantUrl = "https://dapps.evefrontier.com/?tenant=utopia"; // Utopia (test server)
 ```
 
 | # | Task | Detail |
 |---|---|---|
 | 1 | Install `@evefrontier/dapp-kit` | Official EVE Frontier dApp kit. Provides wallet connection hooks for EVE Vault. |
-| 2 | Configure tenant parameter | `?tenant=stillness` scopes all queries to Stillness. Use `?tenant=utopia` for UAT/sandbox. |
+| 2 | Configure tenant parameter | `?tenant=utopia` scopes all queries to Utopia (test server). Use `?tenant=stillness` for production. |
 | 3 | Implement wallet connection flow | EVE Vault browser extension must be installed. Fallback: if not detected, prompt user to enter wallet address manually (read-only mode). |
 | 4 | Extract wallet address post-connect | After connection, retrieve the player's Sui wallet address. This is the input to the PlayerProfile GraphQL query. |
 
@@ -159,7 +159,7 @@ Run these tests in the **first 2 hours of Day 1** before writing any feature cod
 
 | Feature | Validation Test | Fallback if Unavailable |
 |---|---|---|
-| `fuel.move` field names | Open `fuel.move` in world-contracts GitHub. Read struct fields. Write `client.getObject()` call against a test account on Stillness. Confirm JSON matches Move struct. | Derive fuel percentage from fuel-type items in cargo inventory instead. Less precise but functional for alerts. |
+| `fuel.move` field names | Open `fuel.move` in world-contracts GitHub. Read struct fields. Write `client.getObject()` call against a test account on Utopia. Confirm JSON matches Move struct. | Derive fuel percentage from fuel-type items in cargo inventory instead. Less precise but functional for alerts. |
 | Player location (`location.move`) | Fetch Character object, look for any location field. If hashed: try to match hash against known system hashes in world-contracts. If unhashable: fall back to JumpEvent tracking. | Infer from JumpEvent history. Ask player to confirm current system on first use. Store in session. |
 | HP / hull damage state | Inspect Character and Assembly objects for `HP` or `hull_integrity` fields. Check combat Move modules for emitted event structs. | Remove real-time HP from dashboard. Show last combat outcome from kill events. Shell risk assessment uses Crown count only. |
 | Combat event MoveEventType strings | `grep` world-contracts for `has copy, drop` in combat/kill/damage modules. Note full module path (e.g. `0x<PKG>::combat::KillEvent`). Attempt `suix_queryEvents`. | Player manually triggers debrief via chat ("I just fought X"). GHOST responds from knowledge base. |
@@ -354,7 +354,7 @@ Player                Frontend              Backend               Sui Blockchain
 |---|---|---|---|
 | 0–1 | Both | ⭐ Monorepo setup. Install all dependencies. | `npm install` succeeds for both `/backend` and `/frontend`. |
 | 1–2 | Dev A | ⭐ Source `WORLD_PACKAGE_ID` + Sui endpoint. Configure SuiClient. Confirm connection. | `client.getLatestCheckpointSequenceNumber()` returns a number. |
-| 2–3 | Dev A | ⭐ Implement GraphQL PlayerProfile query. Test with real Founder Access wallet. | Returns `character_id` from Stillness chain. |
+| 2–3 | Dev A | ⭐ Implement GraphQL PlayerProfile query. Test with real Founder Access wallet. | Returns `character_id` from Utopia chain. |
 | 3–4 | Dev A | ⭐ Derive Character object ID via TenantItemId. Fetch Character object. Log raw JSON. | Raw Character JSON visible including Shell type. |
 | 4–5 | Dev A | ⭐ Fetch Inventory object. Parse cargo, ammo, fuel items. | `{ cargo: [], fuelItems: [], ammoCount: 0 }` logged. |
 | 5–6 | Dev A | ⭐ Fetch `fuel.move` object. Verify field names against GitHub source. Compute `fuelPct`. | `fuelPct: number` logged. |
@@ -372,7 +372,7 @@ Player                Frontend              Backend               Sui Blockchain
 
 | Hour | Who | Task | Done When |
 |---|---|---|---|
-| 0–2 | Both | ⭐ Integration: frontend wallet → backend `/session/init` → real Stillness data in dashboard. | Real PlayerContext flowing from chain into dashboard. |
+| 0–2 | Both | ⭐ Integration: frontend wallet → backend `/session/init` → real Utopia data in dashboard. | Real PlayerContext flowing from chain into dashboard. |
 | 2–4 | Dev A | ⭐ Redis session store. Cache PlayerContext (TTL 5s). Last 20 alerts per player. Reconnect replay. | After reconnect, last 5 alerts re-appear in frontend. |
 | 4–6 | Dev A | ⭐ LLMHandler. System prompt + PlayerContext injection. Streaming API call. Stream tokens over WS. | "What should I do?" returns streaming GHOST response in console. |
 | 6–8 | Dev A | ⭐ KnowledgeBase. Seed with tutorial text, Cycle 5 notes, 10 recipes, turret comparison. FTS5 retrieval. | Query "how do I build the Reflex" returns 5 relevant chunks. |
@@ -381,7 +381,7 @@ Player                Frontend              Backend               Sui Blockchain
 | 0–2 | Dev B | ⭐ ChatView component. Message history. Three message types (user, ghost, alert). | All three types render correctly on mobile. |
 | 2–4 | Dev B | ⭐ Wire ChatView to WebSocket. Streaming response rendering. Typing indicator. | Typing a message produces streaming GHOST reply in chat UI. |
 | 4–6 | Dev B | ⭐ AlertFeed. Category filter tabs. Tap to open detail in ChatView. | Alerts filterable. Tapping opens correct detail. |
-| 6–8 | Dev B | Wire Status Dashboard to live WebSocket PlayerContext. Animate fuel gauge. Threat ring colors. | Dashboard responds to real Stillness data in <2s. |
+| 6–8 | Dev B | Wire Status Dashboard to live WebSocket PlayerContext. Animate fuel gauge. Threat ring colors. | Dashboard responds to real Utopia data in <2s. |
 | 8–12 | Dev B | Mobile polish pass. 375px viewport. Fix layout breaks. Min 44px tap targets. Loading skeleton. | App fully usable on 375px without horizontal scroll. |
 
 ### Day 3 — March 29: Intelligence Features + Integration Testing
@@ -391,7 +391,7 @@ Player                Frontend              Backend               Sui Blockchain
 | 0–3 | Dev A | ⭐ Tutorial Progression Tracker. Map events to 6 milestones. Set `tutorialStage` in PlayerContext. | New wallet receives Stage 1 guidance on connect. |
 | 3–5 | Dev A | Expand knowledge base: Shell Industry, Feral AI patterns, Orbital Zones, turret table. | "How do I make a Rugged Shell?" returns accurate answer. |
 | 5–7 | Dev A | SSU market intel. Query gateway for top-5 SSUs near starter system. Cache fuel prices. | "Nearest SSU with fuel" shows a real location name in alert text. |
-| 7–9 | Dev A | ⭐ Full integration test end-to-end on Stillness with team accounts. Fix all errors. | End-to-end loop completes without errors on live data. |
+| 7–9 | Dev A | ⭐ Full integration test end-to-end on Utopia with team accounts. Fix all errors. | End-to-end loop completes without errors on live data. |
 | 9–12 | Dev A | Error handling. Sui node timeout, WS disconnect, LLM rate limit, missing fields. | Backend survives 30s timeout. Frontend shows "Reconnecting..." not blank. |
 | 0–2 | Dev B | ⭐ Route Planner MVP. Input: destination. Hardcoded 30-system graph. Output: hops + fuel cost. | Known system name returns route with fuel estimate. |
 | 2–4 | Dev B | GHOST onboarding flow. First-open greeting. Post-connect tutorial nudge for new players. | New user sees GHOST greeting before dashboard. |
@@ -403,8 +403,8 @@ Player                Frontend              Backend               Sui Blockchain
 
 | Hour | Who | Task | Done When |
 |---|---|---|---|
-| 0–2 | Both | ⭐ Deploy to production. Vercel (frontend) + Railway (backend + Redis). Set all env vars. | Live public URL connects to Stillness. Dashboard shows real data. |
-| 2–5 | Both | ⭐ Live gameplay test on Stillness. Generate real scenarios: fuel alert, combat risk, tutorial guidance. | At least 3 genuine GHOST alerts fire. Screenshot/record all. |
+| 0–2 | Both | ⭐ Deploy to production. Vercel (frontend) + Railway (backend + Redis). Set all env vars. | Live public URL connects to Utopia. Dashboard shows real data. |
+| 2–5 | Both | ⭐ Live gameplay test on Utopia. Generate real scenarios: fuel alert, combat risk, tutorial guidance. | At least 3 genuine GHOST alerts fire. Screenshot/record all. |
 | 5–8 | Dev A | ⭐ Record demo video (6 min max). Script: problem (60s) → solution (30s) → live demo (3m) → architecture (45s) → future (45s). | Demo video exported as MP4 with captions. |
 | 5–8 | Dev B | ⭐ Write Devpost submission. All required fields filled. Demo video uploaded. | Devpost draft complete. |
 | 8–10 | Both | Final bug sweep on production. Test all error paths. | No unhandled crashes on production URL. |
@@ -490,11 +490,11 @@ interface AlertCard {
 
 | Variable | Service | Value / Description |
 |---|---|---|
-| `SUI_FULL_NODE_URL` | Backend | Sui full node endpoint for Stillness. Source from Stillness Blockchain Addresses page. |
-| `SUI_GRAPHQL_URL` | Backend | GraphQL endpoint for Sui Stillness network. |
-| `WORLD_PACKAGE_ID` | Backend | EVE Frontier world contract package ID on Stillness. Required for all type filter strings. |
-| `TENANT` | Backend | `"stillness"` for production. `"utopia"` for UAT/sandbox. |
-| `BLOCKCHAIN_GATEWAY_URL` | Backend | `https://blockchain-gateway-stillness.live.tech.evefrontier.com` |
+| `SUI_FULL_NODE_URL` | Backend | Sui full node endpoint for Utopia. Source from Utopia Blockchain Addresses page. |
+| `SUI_GRAPHQL_URL` | Backend | GraphQL endpoint for Sui Utopia network. |
+| `WORLD_PACKAGE_ID` | Backend | EVE Frontier world contract package ID on Utopia. Required for all type filter strings. |
+| `TENANT` | Backend | `"utopia"` for test server. `"stillness"` for production. |
+| `BLOCKCHAIN_GATEWAY_URL` | Backend | `https://blockchain-gateway-utopia.live.tech.evefrontier.com` |
 | `REDIS_URL` | Backend | Redis connection string from Railway or Upstash dashboard. |
 | `ANTHROPIC_API_KEY` | Backend | Anthropic API key. Never expose to frontend. |
 | `OPENAI_API_KEY` | Backend | OpenAI API key (fallback). Never expose to frontend. |

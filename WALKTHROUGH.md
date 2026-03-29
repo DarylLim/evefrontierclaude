@@ -114,8 +114,8 @@ npx tsc --project backend/tsconfig.json --noEmit
 
 The following are marked `// TODO Day 1` in the code and must be completed before any feature works end-to-end:
 
-1. **Source `WORLD_PACKAGE_ID` and Sui endpoints** from the [Stillness Blockchain Addresses page](https://docs.evefrontier.com/Tools/BlockchainAddresses). Fill into `backend/.env.local`.
-2. **Verify `fuel.move` field names** (`current_fuel`, `max_fuel`) against Stillness live data. Implement fuel object fetch in `StateCollector`.
+1. **Source `WORLD_PACKAGE_ID` and Sui endpoints** from the [Utopia Blockchain Addresses page](https://docs.evefrontier.com/Tools/BlockchainAddresses). Fill into `backend/.env.local`.
+2. **Verify `fuel.move` field names** (`current_fuel`, `max_fuel`) against Utopia live data. Implement fuel object fetch in `StateCollector`.
 3. **Implement Character + Inventory object fetches** using `TenantItemId` derivation from `object_registry.move`.
 4. **Validate `location.move`** — confirm whether system ID is hashed or cleartext. Begin JumpEvent fallback if hashed.
 5. **Discover combat event MoveEventType strings** by grepping `world-contracts` repo for `has copy, drop` in combat modules.

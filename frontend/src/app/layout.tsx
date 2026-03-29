@@ -10,7 +10,7 @@ import '@mysten/dapp-kit/dist/index.css';
 const queryClient = new QueryClient();
 
 const networks = {
-  stillness: { url: process.env.NEXT_PUBLIC_SUI_FULL_NODE_URL ?? getFullnodeUrl('mainnet') },
+  utopia: { url: process.env.NEXT_PUBLIC_SUI_FULL_NODE_URL ?? getFullnodeUrl('mainnet') },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <QueryClientProvider client={queryClient}>
-          <SuiClientProvider networks={networks} defaultNetwork="stillness">
+          <SuiClientProvider networks={networks} defaultNetwork="utopia">
             <WalletProvider>
               {children}
             </WalletProvider>

@@ -1,7 +1,7 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { PlayerContext } from '../types';
 
-// TODO Day 1: Source from Stillness Blockchain Addresses page
+// TODO Day 1: Source from Utopia Blockchain Addresses page
 const WORLD_PACKAGE_ID = process.env.WORLD_PACKAGE_ID ?? '';
 const SUI_FULL_NODE_URL = process.env.SUI_FULL_NODE_URL ?? getFullnodeUrl('mainnet');
 const POLL_INTERVAL_MS = parseInt(process.env.SESSION_POLL_INTERVAL_MS ?? '1000', 10);
