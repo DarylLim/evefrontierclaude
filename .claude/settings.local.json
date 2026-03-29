@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(pyenv versions:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 3 node -e \"require\\(''./backend/src/index.ts''\\)\")",
+      "Bash(node --input-type=module:*)",
+      "Bash(ls backend/src/**/)",
+      "Bash(find backend/src -name *.ts)"
+    ]
+  }
+}
