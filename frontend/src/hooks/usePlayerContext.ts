@@ -12,7 +12,7 @@ export function usePlayerContext() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [playerContext, setPlayerContext] = useState<PlayerContext | null>(null);
   const [alerts, setAlerts] = useState<AlertCard[]>([]);
-  const { lastMessage } = useWebSocket(sessionId);
+  const { lastMessage, connected, reconnecting } = useWebSocket(sessionId);
 
   // Init session when wallet connects
   useEffect(() => {
@@ -53,5 +53,5 @@ export function usePlayerContext() {
     }
   }, [lastMessage]);
 
-  return { playerContext, alerts, sessionId };
+  return { playerContext, alerts, sessionId, connected, reconnecting };
 }

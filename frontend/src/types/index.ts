@@ -15,6 +15,7 @@ export interface PlayerContext {
   tutorialStage: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   activeAssemblies: { id: string; typeId: number; typeName: string; status: string }[];
   activeManufacturingJobs: number;
+  hasJumped: boolean;
   lastCombatEventAt: string | null;
   nearestFuelSSU: { id: string; systemName: string; fuelAvailable: number } | null;
   lastUpdatedAt: string;

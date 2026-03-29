@@ -195,6 +195,78 @@ const SEED_DATA: SeedChunk[] = [
     keywords: ['tribe', 'alliance', 'group', 'fleet', 'cooperation', 'multiplayer'],
     text: `Tribes are player groups in EVE Frontier (similar to corporations in classic EVE). Benefits of joining a tribe: shared SSU access, gate permissions, coordinated defense, and resource pooling. To join a tribe, find recruitment posts in the in-game chat or EVE Frontier Discord. GHOST Commander Mode (when multiple tribe members connect their wallets) aggregates fleet state and can warn the tribe leader of individual member fuel/threat levels.`,
   },
+
+  // ── SHELL INDUSTRY (Day 3 expansion) ────────────────────────────────────
+  {
+    source: 'EVE Frontier Shell Industry Guide',
+    category: 'shell-industry',
+    keywords: ['Shell Industry', 'Nursery', 'Crown', 'Nest', 'upgrade', 'shell type selection'],
+    text: `The Shell Industry system lets players grow and evolve their Shells through Nurseries. A Nursery is a player-deployed Smart Assembly that incubates Crowns over time. Each Crown type grants a different stat bonus — combat Crowns boost DPS, industrial Crowns boost mining yield, navigation Crowns improve fuel efficiency. You must choose a Shell type (Rugged, Reaping, or Aggressive) before placing Crowns. Crown incubation takes 4–8 real hours depending on tier. Once a Crown is placed, it cannot be moved to a different Shell type without destroying it.`,
+  },
+  {
+    source: 'EVE Frontier Shell Industry Guide',
+    category: 'shell-industry',
+    keywords: ['Nest', 'Shell evolution', 'upgrade path', 'specialization'],
+    text: `Nests are advanced Nursery structures that allow Shell evolution — upgrading your Shell to the next tier (Mk.I → Mk.II → Mk.III). Each tier unlocks additional module slots and higher base stats. Evolution requires specific Crown combinations: Rugged Mk.II needs 3 industrial + 2 combat Crowns, Reaping Mk.II needs 4 industrial + 1 navigation Crown, Aggressive Mk.II needs 4 combat + 1 navigation Crown. Mk.III requires a Nest at level 3 and 8+ Crowns total. Evolution consumes the Crowns — they are not recoverable.`,
+  },
+
+  // ── FERAL AI PATTERNS (Day 3 expansion) ─────────────────────────────────
+  {
+    source: 'EVE Frontier Threat Intelligence',
+    category: 'combat',
+    keywords: ['Feral AI', 'patrol', 'pattern', 'spawn', 'NPC behavior', 'aggro'],
+    text: `Feral AI entities follow predictable patrol patterns in EVE Frontier. Scout Drones orbit asteroid fields in groups of 2–3 and aggro within 10km. Patrol Frigates move between gates and stations on fixed routes — they aggro within 15km and call reinforcements if not destroyed within 60 seconds. Feral Cruisers are rare spawns that appear near Construction Sites and high-value ore deposits — they have 4000+ HP, deal heavy damage, and can web (slow) your shell. Community reports suggest Feral AI density resets every 4 hours (server tick). Best farming window: immediately after a density reset.`,
+  },
+  {
+    source: 'EVE Frontier Threat Intelligence',
+    category: 'combat',
+    keywords: ['Feral AI', 'loot', 'drop', 'reward', 'bounty', 'combat reward'],
+    text: `Feral AI loot tables by tier: Scout Drones drop 1–3x Microprocessors and salvage materials. Patrol Frigates drop 5–10x Copper Wire, 2–4x Microprocessors, and occasionally a Light Railgun blueprint. Feral Cruisers drop rare blueprints (Medium Autocannon, Structural Frame bundles), 10–20x Microprocessors, and unique Feral Core components used in advanced Shell upgrades. Kill bounties are not paid in ISK — all reward comes from loot. Efficient farming: target Patrol Frigates in Yellow Zone systems for best loot/risk ratio.`,
+  },
+
+  // ── ORBITAL ZONES (Day 3 expansion) ─────────────────────────────────────
+  {
+    source: 'EVE Frontier Orbital Zones Guide',
+    category: 'navigation',
+    keywords: ['Passive Observation', 'POS', 'observation system', 'scanner', 'detection'],
+    text: `The Passive Observation System (POS) is an automated scanner built into every system. It detects and broadcasts ship movements within the system to all players present. When you enter a system, all current residents see your Shell type and approximate location. In Green Zones, POS data is delayed by 30 seconds. In Yellow Zones, it is real-time. In Red Zones, it also reveals cargo value estimates. Hunters use POS data to find high-value targets — if you carry expensive cargo in a Red Zone, assume you are being tracked.`,
+  },
+  {
+    source: 'EVE Frontier Orbital Zones Guide',
+    category: 'navigation',
+    keywords: ['Construction Site', 'buildable', 'claim', 'territory', 'structure placement'],
+    text: `Construction Sites are designated locations within systems where players can anchor Smart Assemblies (SSUs, SMUs, Smart Gates, Nurseries). Each system has a limited number of Construction Sites — typically 5–8 in Green Zones, 10–15 in Yellow Zones, and 20+ in Red Zones. Sites are first-come-first-served. Once claimed, a Construction Site cannot be contested unless the structure is destroyed or voluntarily unanchored. Prime Construction Sites near gates are highly contested in Yellow Zones.`,
+  },
+
+  // ── TURRET COMPARISON (Day 3 expansion) ─────────────────────────────────
+  {
+    source: 'EVE Frontier Turret Comparison Table',
+    category: 'combat',
+    keywords: ['turret', 'weapon', 'comparison', 'Autocannon', 'Plasma', 'Railgun', 'DPS', 'range'],
+    text: `Turret comparison for EVE Frontier (Cycle 5 stats): Light Railgun — Range: 15km, DPS: 25, Ammo cost: low, Best for: kiting Feral AI scouts, new player default. Medium Autocannon — Range: 8km, DPS: 55, Ammo cost: medium, Best for: close-range brawling, Aggressive Shell primary. Heavy Plasma Cannon — Range: 12km, DPS: 80, Ammo cost: high, Best for: sustained damage vs Feral Cruisers and structures. Heavy Torpedo Launcher — Range: 20km, DPS: 100 (burst), Ammo cost: very high, Best for: alpha strikes on player shells, requires Aggressive Shell. Multiple turret types can be fitted simultaneously if your shell has enough module slots.`,
+  },
+  {
+    source: 'EVE Frontier Turret Comparison Table',
+    category: 'combat',
+    keywords: ['turret', 'fitting', 'module slot', 'optimal', 'loadout', 'build'],
+    text: `Recommended turret loadouts by Shell type: Rugged Shell — 1x Light Railgun + 1x Medium Autocannon (balanced PvE). Rugged Mk.II — 2x Medium Autocannon (strong PvE, decent PvP defense). Reaping Shell — 1x Light Railgun only (self-defense, avoid combat). Aggressive Shell — 2x Heavy Plasma Cannon + 1x Medium Autocannon (full DPS). Aggressive Mk.II — 2x Heavy Torpedo Launcher + 1x Heavy Plasma Cannon (maximum alpha damage, expensive ammo). Always carry at least 200 rounds of ammo per turret for a combat session.`,
+  },
+
+  // ── ADVANCED CRAFTING (Day 3 expansion) ─────────────────────────────────
+  {
+    source: 'EVE Frontier Advanced Crafting Guide',
+    category: 'manufacturing',
+    keywords: ['advanced', 'blueprint', 'rare', 'Mk.II', 'upgrade', 'advanced recipe'],
+    text: `Advanced crafting recipes require blueprints dropped from Feral AI or purchased from player markets. Rugged Shell Mk.II Blueprint: requires 20x Iron Plates, 15x Copper Wire, 10x Microprocessors, 5x Structural Frames, 1x Feral Core. Build time: 4 hours in an SMU. Reaping Shell Mk.II Blueprint: 15x Iron Plates, 20x Copper Wire, 12x Microprocessors, 8x Structural Frames, 2x Refined Water Ice. Build time: 5 hours. Aggressive Shell Mk.II Blueprint: 25x Iron Plates, 10x Copper Wire, 15x Microprocessors, 10x Structural Frames, 2x Feral Cores. Build time: 6 hours.`,
+  },
+
+  // ── FUEL EFFICIENCY (Day 3 expansion) ───────────────────────────────────
+  {
+    source: 'EVE Frontier Fuel Efficiency Guide',
+    category: 'fuel',
+    keywords: ['fuel efficiency', 'Crown bonus', 'navigation Crown', 'save fuel', 'optimize'],
+    text: `Fuel efficiency can be improved through navigation Crowns. Each navigation Crown reduces fuel consumption by approximately 5% (multiplicative). A Shell with 3 navigation Crowns uses ~15% less fuel per jump. Combined with the Rugged Shell's large fuel tank (200 units), this extends effective range by 4–6 additional jumps. Fuel efficiency is also affected by cargo mass — a full cargo bay increases consumption by up to 20%. If planning a long route, deposit non-essential cargo at an SSU before departing.`,
+  },
 ];
 
 export function seedKnowledgeBase(): void {

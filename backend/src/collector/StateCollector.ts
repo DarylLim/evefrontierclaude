@@ -1,5 +1,7 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { PlayerContext } from '../types';
+import { SSUMarketCollector } from './SSUMarketCollector';
+import { determineTutorialStage } from '../engine/TutorialTracker';
 
 const WORLD_PACKAGE_ID = process.env.WORLD_PACKAGE_ID ?? '';
 const SUI_FULL_NODE_URL = process.env.SUI_FULL_NODE_URL ?? getFullnodeUrl('testnet');
@@ -24,15 +26,22 @@ export class StateCollector {
   private lastKillmailCursor: string | null = null;
   private lastCombatEventAt: Date | null = null;
   private characterItemId: number | null = null; // numeric game ID for killmail filtering
+  private hasJumped = false; // set to true once a JumpEvent is observed
+  private ssuMarketCollector: SSUMarketCollector;
 
   constructor(walletAddress: string, onUpdate: (ctx: PlayerContext) => void) {
     this.walletAddress = walletAddress;
     this.onUpdate = onUpdate;
     this.client = new SuiClient({ url: SUI_FULL_NODE_URL });
+    this.ssuMarketCollector = new SSUMarketCollector();
   }
 
   async start(): Promise<void> {
-    await this.fetchAndEmit();
+    try {
+      await this.fetchAndEmit();
+    } catch (err) {
+      console.error('[StateCollector] Initial fetch failed, will retry on next poll:', err);
+    }
     this.pollTimer = setInterval(() => this.pollEvents(), POLL_INTERVAL_MS);
   }
 
@@ -70,6 +79,7 @@ export class StateCollector {
       const result = data.result;
       if (result && result.data.length > 0) {
         this.lastEventCursor = result.nextCursor;
+        this.hasJumped = true;
         await this.fetchAndEmit();
       }
     } catch (err) {
@@ -175,7 +185,10 @@ export class StateCollector {
       ? Math.round((fuelUnitsRemaining / fuelMaxCapacity) * 100)
       : 0;
 
-    return {
+    // Fetch nearest fuel SSU (cached, non-blocking on failure)
+    const nearestFuelSSU = await this.ssuMarketCollector.fetchNearestFuelSSU();
+
+    const ctx: PlayerContext = {
       walletAddress: this.walletAddress,
       characterId,
       shellType,
@@ -189,13 +202,18 @@ export class StateCollector {
       currentSystemName: null,
       threatLevel: 'SAFE',
       hostileEntityCount: 0,
-      tutorialStage: 0,
+      tutorialStage: 0, // placeholder – computed below
       activeAssemblies,
       activeManufacturingJobs: 0,
+      hasJumped: this.hasJumped,
       lastCombatEventAt: this.lastCombatEventAt,
-      nearestFuelSSU: null,
+      nearestFuelSSU,
       lastUpdatedAt: new Date(),
     };
+
+    ctx.tutorialStage = determineTutorialStage(ctx);
+
+    return ctx;
   }
 
   // ── PlayerProfile → character_id ──────────────────────────────────────────

@@ -5,10 +5,12 @@ import { usePlayerContext } from '@/hooks/usePlayerContext';
 import FuelGauge from '@/components/FuelGauge';
 import ThreatRing from '@/components/ThreatRing';
 import AlertFeed from '@/components/AlertFeed';
+import RoutePlanner from '@/components/RoutePlanner';
+import Onboarding from '@/components/Onboarding';
 import ChatView from '../chat/page';
 
 export default function Dashboard() {
-  const { playerContext, alerts, sessionId } = usePlayerContext();
+  const { playerContext, alerts, sessionId, reconnecting } = usePlayerContext();
   const [debugOpen, setDebugOpen] = useState(false);
 
   return (
@@ -16,12 +18,18 @@ export default function Dashboard() {
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold tracking-widest text-ghost-accent">GHOST</h1>
         <span className="text-xs text-gray-500">
-          {playerContext?.currentSystemName ?? 'Locating...'}
+          {reconnecting ? (
+            <span className="text-ghost-warning animate-pulse">Reconnecting...</span>
+          ) : (
+            playerContext?.currentSystemName ?? 'Locating...'
+          )}
         </span>
       </header>
 
       {playerContext ? (
         <>
+          <Onboarding tutorialStage={playerContext.tutorialStage} onDismiss={() => {}} />
+
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-ghost-surface rounded-lg p-4 border border-ghost-border">
               <FuelGauge pct={playerContext.fuelPct} />
@@ -58,6 +66,8 @@ export default function Dashboard() {
               <AlertFeed alerts={alerts} />
             </div>
           )}
+
+          <RoutePlanner />
         </>
       ) : (
         <div className="text-center text-gray-500 py-8">
