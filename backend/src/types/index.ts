@@ -31,6 +31,9 @@ export interface PlayerContext {
   activeAssemblies: { id: string; typeId: number; typeName: string; status: string }[];
   activeManufacturingJobs: number;
 
+  // Navigation
+  hasJumped: boolean;
+
   // Combat
   lastCombatEventAt: Date | null;
 

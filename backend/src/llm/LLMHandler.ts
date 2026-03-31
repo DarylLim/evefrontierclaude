@@ -28,8 +28,12 @@ Hard constraints:
 
 type ConversationMessage = { role: 'user' | 'assistant'; content: string };
 
+const RATE_LIMIT_MS = 3000; // 1 request per 3 seconds per session
+const REQUEST_TIMEOUT_MS = 30000; // 30 second timeout
+
 export class LLMHandler {
   private client: Anthropic;
+  private lastRequestAt = 0;
 
   constructor() {
     this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -42,6 +46,14 @@ export class LLMHandler {
     onToken: (token: string) => void,
     onDone: () => void,
   ): Promise<void> {
+    // Rate limiting
+    const now = Date.now();
+    if (now - this.lastRequestAt < RATE_LIMIT_MS) {
+      onToken('Please wait a moment before sending another message.');
+      onDone();
+      return;
+    }
+    this.lastRequestAt = now;
     const chunks = KnowledgeBase.search(userMessage);
     const knowledgeSection = chunks.length > 0
       ? chunks.map((c: KnowledgeChunk, i: number) => `[SOURCE ${i + 1}: ${c.source}]\n${c.text}`).join('\n\n')
@@ -61,21 +73,35 @@ ${conversationHistory.slice(-10).map((m) => `${m.role}: ${m.content}`).join('\n'
 ${userMessage}
 `.trim();
 
-    const stream = await this.client.messages.stream({
-      model: MODEL,
-      max_tokens: LLM_MAX_TOKENS,
-      temperature: 0.4,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userContent }],
-    });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('LLM request timed out')), REQUEST_TIMEOUT_MS),
+    );
 
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        onToken(event.delta.text);
+    const streamPromise = (async () => {
+      const stream = await this.client.messages.stream({
+        model: MODEL,
+        max_tokens: LLM_MAX_TOKENS,
+        temperature: 0.4,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userContent }],
+      });
+
+      for await (const event of stream) {
+        if (
+          event.type === 'content_block_delta' &&
+          event.delta.type === 'text_delta'
+        ) {
+          onToken(event.delta.text);
+        }
       }
+    })();
+
+    try {
+      await Promise.race([streamPromise, timeoutPromise]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown LLM error';
+      console.error('[LLMHandler] Error:', message);
+      onToken(`\n\n[GHOST connection interrupted: ${message}]`);
     }
 
     onDone();

@@ -1,5 +1,8 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { PlayerContext } from '../types';
+import { SSUMarketCollector } from './SSUMarketCollector';
+import { determineTutorialStage } from '../engine/TutorialTracker';
+import { assessThreat } from '../engine/ThreatAssessor';
 
 const WORLD_PACKAGE_ID = process.env.WORLD_PACKAGE_ID ?? '';
 const SUI_FULL_NODE_URL = process.env.SUI_FULL_NODE_URL ?? getFullnodeUrl('testnet');
@@ -24,15 +27,22 @@ export class StateCollector {
   private lastKillmailCursor: string | null = null;
   private lastCombatEventAt: Date | null = null;
   private characterItemId: number | null = null; // numeric game ID for killmail filtering
+  private hasJumped = false; // set to true once a JumpEvent is observed
+  private ssuMarketCollector: SSUMarketCollector;
 
   constructor(walletAddress: string, onUpdate: (ctx: PlayerContext) => void) {
     this.walletAddress = walletAddress;
     this.onUpdate = onUpdate;
     this.client = new SuiClient({ url: SUI_FULL_NODE_URL });
+    this.ssuMarketCollector = new SSUMarketCollector();
   }
 
   async start(): Promise<void> {
-    await this.fetchAndEmit();
+    try {
+      await this.fetchAndEmit();
+    } catch (err) {
+      console.error('[StateCollector] Initial fetch failed, will retry on next poll:', err);
+    }
     this.pollTimer = setInterval(() => this.pollEvents(), POLL_INTERVAL_MS);
   }
 
@@ -70,6 +80,7 @@ export class StateCollector {
       const result = data.result;
       if (result && result.data.length > 0) {
         this.lastEventCursor = result.nextCursor;
+        this.hasJumped = true;
         await this.fetchAndEmit();
       }
     } catch (err) {
@@ -175,7 +186,17 @@ export class StateCollector {
       ? Math.round((fuelUnitsRemaining / fuelMaxCapacity) * 100)
       : 0;
 
-    return {
+    // Fetch nearest fuel SSU (cached, non-blocking on failure)
+    const nearestFuelSSU = await this.ssuMarketCollector.fetchNearestFuelSSU();
+
+    const { threatLevel, hostileEntityCount } = assessThreat({
+      lastCombatEventAt: this.lastCombatEventAt,
+      activeAssemblies,
+      hasJumped: this.hasJumped,
+      fuelPct,
+    });
+
+    const ctx: PlayerContext = {
       walletAddress: this.walletAddress,
       characterId,
       shellType,
@@ -184,18 +205,23 @@ export class StateCollector {
       fuelUnitsRemaining,
       fuelMaxCapacity,
       cargoItems,
-      ammoCount: 0,
+      ammoCount: this.deriveAmmoCount(cargoItems),
       currentSystemId: null,
       currentSystemName: null,
-      threatLevel: 'SAFE',
-      hostileEntityCount: 0,
-      tutorialStage: 0,
+      threatLevel,
+      hostileEntityCount,
+      tutorialStage: 0, // placeholder – computed below
       activeAssemblies,
-      activeManufacturingJobs: 0,
+      activeManufacturingJobs: this.countManufacturingJobs(activeAssemblies),
+      hasJumped: this.hasJumped,
       lastCombatEventAt: this.lastCombatEventAt,
-      nearestFuelSSU: null,
+      nearestFuelSSU,
       lastUpdatedAt: new Date(),
     };
+
+    ctx.tutorialStage = determineTutorialStage(ctx);
+
+    return ctx;
   }
 
   // ── PlayerProfile → character_id ──────────────────────────────────────────
@@ -399,6 +425,31 @@ export class StateCollector {
       console.warn(`[StateCollector] fetchInventory(${assemblyId}) error:`, err);
       return [];
     }
+  }
+
+  // ── Ammo derivation from cargo ─────────────────────────────────────────────
+
+  private deriveAmmoCount(cargoItems: PlayerContext['cargoItems']): number {
+    // Ammo type IDs are not definitively documented. Heuristic: items with
+    // volume <= 0.1 and quantity > 10 are likely ammo/charges. If we later
+    // learn exact typeIds, this can be refined.
+    let ammoTotal = 0;
+    for (const item of cargoItems) {
+      if (item.volume <= 0.1 && item.quantity > 10) {
+        ammoTotal += item.quantity;
+      }
+    }
+    return ammoTotal;
+  }
+
+  // ── Manufacturing job detection ───────────────────────────────────────────
+
+  private countManufacturingJobs(assemblies: PlayerContext['activeAssemblies']): number {
+    // Assemblies with status "Online" that are SMU-type are potential
+    // manufacturing hosts. We count Online assemblies as a proxy for active
+    // manufacturing since querying individual SMU job queues requires
+    // additional dynamic field lookups not yet implemented.
+    return assemblies.filter((a) => a.status === 'Online').length;
   }
 
   // ── World API → Ship type name ────────────────────────────────────────────

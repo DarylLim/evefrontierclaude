@@ -22,6 +22,7 @@ export class ContextEngine {
       tutorialStage: raw.tutorialStage ?? 0,
       activeAssemblies: raw.activeAssemblies ?? [],
       activeManufacturingJobs: raw.activeManufacturingJobs ?? 0,
+      hasJumped: raw.hasJumped ?? false,
       lastCombatEventAt: raw.lastCombatEventAt ?? null,
       nearestFuelSSU: raw.nearestFuelSSU ?? null,
       lastUpdatedAt: new Date(),

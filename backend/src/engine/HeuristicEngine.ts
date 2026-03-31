@@ -11,9 +11,16 @@ type Rule = {
 };
 
 function estimatedReturnCost(ctx: PlayerContext): number {
-  // Rough heuristic: 10 fuel units per hop, assume 3 hops back to safe zone
-  // TODO Day 2: Improve using hardcoded region graph
-  return 30;
+  // Base cost: 10 fuel units per hop. Estimate hops based on tutorial progress.
+  // Players who have jumped (left starter) need at minimum 3 hops back.
+  // Players still in starter need 0 hops.
+  const baseHops = ctx.hasJumped ? 3 : 0;
+  const costPerHop = 10;
+  // Add buffer for shell mass variance (heavier shells burn more)
+  const massMultiplier = ctx.shellType?.toLowerCase().includes('aggressive') ? 1.5
+    : ctx.shellType?.toLowerCase().includes('reaping') ? 1.2
+    : 1.0;
+  return Math.ceil(baseHops * costPerHop * massMultiplier);
 }
 
 function idleMinutes(ctx: PlayerContext): number {
@@ -52,7 +59,7 @@ const rules: Rule[] = [
     severity: 'critical',
     trigger: (ctx) => ctx.fuelUnitsRemaining < estimatedReturnCost(ctx),
     title: () => 'Stranding Risk',
-    message: (ctx) => `Only ${ctx.fuelUnitsRemaining} fuel units remain — below estimated return cost. Refuel before moving.`,
+    message: (ctx) => `Only ${ctx.fuelUnitsRemaining} fuel units remain — below estimated return cost of ${estimatedReturnCost(ctx)} units. Refuel before moving.`,
   },
   {
     id: 'manufacturing_safety',
